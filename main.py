@@ -8,6 +8,10 @@ import translate
 from auth import get_current_user
 from database import is_blocked, save_message, get_user_language, get_contacts
 import os
+import logging
+
+logger = logging.getLogger("lingua")
+logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
 connections = {}
@@ -29,10 +33,12 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(...)):
     try:
         mobile = get_current_user("Bearer " + token)
     except:
+        logger.warning("WebSocket authentication failed")
         await websocket.close()
         return
 
     await websocket.accept()
+    logger.info("WebSocket connected")
 
     connections.setdefault(mobile, set()).add(websocket)
 
@@ -43,6 +49,9 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(...)):
             receiver = data["receiver"]
             message = data["message"]
 
+            logger.info("WebSocket message received")
+            logger.info(f"{message}")
+
             # Block check
             if is_blocked(receiver, mobile):
                 continue
@@ -50,6 +59,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(...)):
             # Save message
             save_message(receiver, message, mobile)
 
+            logger.info("Message saved successfully")
             # Send message if receiver is online
             if receiver in connections:
                 preferred_lang = get_user_language(receiver)
@@ -74,6 +84,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(...)):
                     })
 
     except WebSocketDisconnect:
+        logger.info("WebSocket disconnected")
         if mobile in connections:
             connections[mobile].discard(websocket)
 

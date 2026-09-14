@@ -3,6 +3,9 @@ import random
 from fastapi import HTTPException, APIRouter, Depends
 from auth import create_token, get_current_user
 from db import get_connection
+import logging
+
+logger = logging.getLogger("lingua")
 
 router = APIRouter()
 
@@ -181,6 +184,10 @@ def save_message(
     message: str,
     sender_mobile: str
 ):
+    logger.info(f"Receiver: {receiver_mobile}")
+    logger.info(f"Message: {message}")
+    logger.info(f"Sender: {sender_mobile}")
+
     # Make sure receiver exists
     get_or_create_user(receiver_mobile)
 
@@ -205,6 +212,7 @@ def save_message(
             )
 
         conn.commit()
+    logger.info("save_message() committed")
 
 
 def get_last_message(mobile: str):
