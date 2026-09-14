@@ -982,7 +982,8 @@ def send_otp(request: dict):
 
     return {
         "status": "OTP sent",
-        "mobile": mobile
+        "mobile": mobile,
+        "otp":otp
     }
 
 
