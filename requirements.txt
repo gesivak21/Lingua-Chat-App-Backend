@@ -1,4 +1,5 @@
-uvicorn
+uvicorn[standard]
+websockets
 fastapi[standard]
 python-multipart
 PyJWT
